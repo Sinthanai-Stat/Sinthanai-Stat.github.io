@@ -44,7 +44,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Sub-tabs within a tool panel (data-subgroup / data-mode)
+  // Sub-tabs within a tool panel (data-subgroup / data-mode). Scoped to the
+  // nearest tool-panel OR calc-mode ancestor (whichever is closer) and only
+  // toggles DIRECT-CHILD .calc-mode elements, so this also works correctly
+  // when sub-tabs are nested two levels deep (a category of sub-tabs whose
+  // own calc-mode panes each contain another sub-tabs group).
   document.querySelectorAll(".sub-tabs").forEach(function (group) {
     var buttons = group.querySelectorAll(".sub-tab");
     buttons.forEach(function (btn) {
@@ -53,8 +57,8 @@ document.addEventListener("DOMContentLoaded", function () {
         btn.classList.add("active");
 
         var targetId = btn.getAttribute("data-mode");
-        var panel = group.closest(".tool-panel");
-        panel.querySelectorAll(".calc-mode").forEach(function (p) {
+        var panel = group.closest(".tool-panel, .calc-mode");
+        panel.querySelectorAll(":scope > .calc-mode").forEach(function (p) {
           p.classList.remove("active");
         });
         var target = document.getElementById(targetId);
