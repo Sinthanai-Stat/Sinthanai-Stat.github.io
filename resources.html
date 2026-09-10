@@ -33,11 +33,13 @@
   <div class="container">
     <span class="eyebrow" style="justify-content:center;display:inline-flex;">Free &amp; Open</span>
     <h1>Biostatistics Resources</h1>
-    <p>Presentation slides, and two interactive tools for study design and everyday data analysis — sample size &amp; power calculator, and a basic statistics calculator.</p>
+    <p>Presentation slides and interactive tools for study design and everyday data analysis — sample size &amp; power, general statistics, survival analysis, and time series.</p>
     <div class="res-nav">
       <a href="#ppts">📊 Presentations</a>
       <a href="#sample-size">🧮 Sample Size &amp; Power</a>
       <a href="#stats-calc">📈 Statistics Calculator</a>
+      <a href="#survival">⏱️ Survival Analysis</a>
+      <a href="#timeseries">📉 Time Series</a>
     </div>
   </div>
 </section>
@@ -245,12 +247,12 @@
     <div class="section-head">
       <span class="tag">Data Analysis</span>
       <h2>Basic Statistics Calculator</h2>
-      <p>Paste a list of numbers to get descriptive statistics, run a quick t‑test / chi‑square test, or build a confidence interval.</p>
+      <p>Paste a list of numbers to get descriptive statistics, run a hypothesis test (parametric or non‑parametric), a chi‑square test, or build a confidence interval.</p>
     </div>
 
     <div class="tool-tabs" data-tabgroup="sc-main">
       <button class="tool-tab active" data-tab="sc-desc">Descriptive Stats</button>
-      <button class="tool-tab" data-tab="sc-ttest">t‑test</button>
+      <button class="tool-tab" data-tab="sc-ttest">Hypothesis Tests</button>
       <button class="tool-tab" data-tab="sc-chi">Chi‑square (2×2)</button>
       <button class="tool-tab" data-tab="sc-ci">Confidence Interval</button>
     </div>
@@ -269,52 +271,117 @@
 
     <!-- t-test -->
     <div class="tool-panel" id="sc-ttest">
-      <div class="sub-tabs" data-subgroup="tt-mode">
-        <button class="sub-tab active" data-mode="tt-one">One‑Sample</button>
-        <button class="sub-tab" data-mode="tt-two">Two‑Sample (independent)</button>
+      <div class="sub-tabs" data-subgroup="test-category">
+        <button class="sub-tab active" data-mode="cat-parametric">Parametric</button>
+        <button class="sub-tab" data-mode="cat-nonparametric">Non‑Parametric</button>
       </div>
 
-      <div class="calc-mode active" id="tt-one">
-        <div class="field" style="margin-bottom:18px;">
-          <label>Sample data <span class="hint">comma/space/newline separated</span></label>
-          <textarea id="tt1Input" placeholder="e.g. 101, 98, 105, 99, 103">101, 98, 105, 99, 103, 107, 96, 100</textarea>
+      <!-- ===== PARAMETRIC ===== -->
+      <div class="calc-mode active" id="cat-parametric">
+        <div class="sub-tabs" data-subgroup="tt-mode">
+          <button class="sub-tab active" data-mode="tt-one">One‑Sample t‑test</button>
+          <button class="sub-tab" data-mode="tt-two">Two‑Sample t‑test</button>
         </div>
-        <div class="form-grid">
-          <div class="field"><label>Hypothesised population mean (μ₀)</label><input type="number" id="tt1_mu0" value="100" step="0.1"></div>
-          <div class="field">
+
+        <div class="calc-mode active" id="tt-one">
+          <div class="field" style="margin-bottom:18px;">
+            <label>Sample data <span class="hint">comma/space/newline separated</span></label>
+            <textarea id="tt1Input" placeholder="e.g. 101, 98, 105, 99, 103">101, 98, 105, 99, 103, 107, 96, 100</textarea>
+          </div>
+          <div class="form-grid">
+            <div class="field"><label>Hypothesised population mean (μ₀)</label><input type="number" id="tt1_mu0" value="100" step="0.1"></div>
+            <div class="field">
+              <label>Significance level (α)</label>
+              <select id="tt1_alpha">
+                <option value="0.10">0.10</option>
+                <option value="0.05" selected>0.05</option>
+                <option value="0.01">0.01</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="calcTTestOne()">Run One‑Sample t‑test</button>
+          <div class="result-box hidden" id="tt1_result"></div>
+          <p class="formula-note">Assumes the sample is approximately normally distributed. If it isn't (skewed, small n, outliers), use the Wilcoxon Signed‑Rank test under Non‑Parametric instead.</p>
+        </div>
+
+        <div class="calc-mode" id="tt-two">
+          <div class="form-grid">
+            <div class="field">
+              <label>Group 1 data</label>
+              <textarea id="tt2_g1" placeholder="e.g. 12,14,15,11">12, 14, 15, 11, 13, 16, 10</textarea>
+            </div>
+            <div class="field">
+              <label>Group 2 data</label>
+              <textarea id="tt2_g2" placeholder="e.g. 18,20,17,19">18, 20, 17, 19, 21, 16, 22</textarea>
+            </div>
+          </div>
+          <div class="field" style="max-width:220px;">
             <label>Significance level (α)</label>
-            <select id="tt1_alpha">
+            <select id="tt2_alpha">
               <option value="0.10">0.10</option>
               <option value="0.05" selected>0.05</option>
               <option value="0.01">0.01</option>
             </select>
           </div>
+          <button class="btn btn-primary" onclick="calcTTestTwo()">Run Two‑Sample t‑test</button>
+          <div class="result-box hidden" id="tt2_result"></div>
+          <p class="formula-note">Welch's t‑test — assumes both groups are approximately normally distributed. If not, use Mann‑Whitney U under Non‑Parametric instead.</p>
         </div>
-        <button class="btn btn-primary" onclick="calcTTestOne()">Run One‑Sample t‑test</button>
-        <div class="result-box hidden" id="tt1_result"></div>
       </div>
 
-      <div class="calc-mode" id="tt-two">
-        <div class="form-grid">
-          <div class="field">
-            <label>Group 1 data</label>
-            <textarea id="tt2_g1" placeholder="e.g. 12,14,15,11">12, 14, 15, 11, 13, 16, 10</textarea>
-          </div>
-          <div class="field">
-            <label>Group 2 data</label>
-            <textarea id="tt2_g2" placeholder="e.g. 18,20,17,19">18, 20, 17, 19, 21, 16, 22</textarea>
-          </div>
+      <!-- ===== NON-PARAMETRIC ===== -->
+      <div class="calc-mode" id="cat-nonparametric">
+        <div class="sub-tabs" data-subgroup="np-mode">
+          <button class="sub-tab active" data-mode="np-wilcoxon">Wilcoxon Signed‑Rank</button>
+          <button class="sub-tab" data-mode="np-mannwhitney">Mann‑Whitney U</button>
         </div>
-        <div class="field" style="max-width:220px;">
-          <label>Significance level (α)</label>
-          <select id="tt2_alpha">
-            <option value="0.10">0.10</option>
-            <option value="0.05" selected>0.05</option>
-            <option value="0.01">0.01</option>
-          </select>
+
+        <div class="calc-mode active" id="np-wilcoxon">
+          <p style="color:var(--muted);font-size:.9rem;margin-top:0;">One‑sample / paired‑differences test — no normality assumption. Tests whether the median differs from a hypothesised value (for paired data, enter the differences and set μ₀ = 0).</p>
+          <div class="field" style="margin-bottom:18px;">
+            <label>Sample data <span class="hint">comma/space/newline separated</span></label>
+            <textarea id="wsr_data" placeholder="e.g. 101, 98, 105, 99, 103">101, 98, 105, 99, 103, 107, 96, 100</textarea>
+          </div>
+          <div class="form-grid">
+            <div class="field"><label>Hypothesised median (μ₀)</label><input type="number" id="wsr_mu0" value="100" step="0.1"></div>
+            <div class="field">
+              <label>Significance level (α)</label>
+              <select id="wsr_alpha">
+                <option value="0.10">0.10</option>
+                <option value="0.05" selected>0.05</option>
+                <option value="0.01">0.01</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="calcWilcoxonSignedRank()">Run Wilcoxon Signed‑Rank Test</button>
+          <div class="result-box hidden" id="wsr_result"></div>
+          <p class="formula-note">Normal approximation with continuity correction and tie correction — suitable for n ≳ 10; very small samples should use exact tables.</p>
         </div>
-        <button class="btn btn-primary" onclick="calcTTestTwo()">Run Two‑Sample t‑test</button>
-        <div class="result-box hidden" id="tt2_result"></div>
+
+        <div class="calc-mode" id="np-mannwhitney">
+          <p style="color:var(--muted);font-size:.9rem;margin-top:0;">Two independent samples, no normality assumption — tests whether one group tends to have larger values than the other.</p>
+          <div class="form-grid">
+            <div class="field">
+              <label>Group 1 data</label>
+              <textarea id="mwu_g1" placeholder="e.g. 12,14,15,11">12, 14, 15, 11, 13, 16, 10</textarea>
+            </div>
+            <div class="field">
+              <label>Group 2 data</label>
+              <textarea id="mwu_g2" placeholder="e.g. 18,20,17,19">18, 20, 17, 19, 21, 16, 22</textarea>
+            </div>
+          </div>
+          <div class="field" style="max-width:220px;">
+            <label>Significance level (α)</label>
+            <select id="mwu_alpha">
+              <option value="0.10">0.10</option>
+              <option value="0.05" selected>0.05</option>
+              <option value="0.01">0.01</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="calcMannWhitneyU()">Run Mann‑Whitney U Test</button>
+          <div class="result-box hidden" id="mwu_result"></div>
+          <p class="formula-note">Normal approximation with continuity correction and tie correction — suitable for moderate/larger n; very small samples should use exact tables.</p>
+        </div>
       </div>
     </div>
 
@@ -339,6 +406,8 @@
         <button class="sub-tab" data-mode="ci-prop">Proportion</button>
         <button class="sub-tab" data-mode="ci-diff-means">Difference of Means</button>
         <button class="sub-tab" data-mode="ci-diff-props">Difference of Proportions</button>
+        <button class="sub-tab" data-mode="ci-or">Odds Ratio (2×2)</button>
+        <button class="sub-tab" data-mode="ci-rr">Risk Ratio (2×2)</button>
       </div>
 
       <!-- Mean from raw data (t-based) -->
@@ -380,7 +449,7 @@
         <p class="formula-note">CI = x̄ ± t(α/2, df) · (SD/√n), using Student's t distribution (df = n − 1).</p>
       </div>
 
-      <!-- Single proportion (z-based) -->
+      <!-- Single proportion -->
       <div class="calc-mode" id="ci-prop">
         <div class="form-grid">
           <div class="field"><label>Number of events (x)</label><input type="number" id="ciP_x" value="45" step="1" min="0"></div>
@@ -394,9 +463,24 @@
             </select>
           </div>
         </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label>Method</label>
+          <div class="radio-group">
+            <label><input type="radio" name="ciP_method" value="wald" checked> Wald (Normal approx)</label>
+            <label><input type="radio" name="ciP_method" value="wilson"> Wilson Score</label>
+            <label><input type="radio" name="ciP_method" value="agresti"> Agresti–Coull</label>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:18px;">
+          <label>Display units</label>
+          <div class="radio-group">
+            <label><input type="radio" name="ciP_units" value="percent" checked> Percentage (%)</label>
+            <label><input type="radio" name="ciP_units" value="proportion"> Proportion (0–1)</label>
+          </div>
+        </div>
         <button class="btn btn-primary" onclick="calcCIProp()">Calculate CI</button>
         <div class="result-box hidden" id="ciP_result"></div>
-        <p class="formula-note">CI = p̂ ± z(α/2) · √(p̂(1−p̂)/n), Wald normal approximation.</p>
+        <p class="formula-note">Wald: p̂ ± z·√(p̂(1−p̂)/n). Wilson score and Agresti–Coull generally perform better for small n or p̂ near 0 or 1.</p>
       </div>
 
       <!-- Difference of two means -->
@@ -440,13 +524,218 @@
             </select>
           </div>
         </div>
+        <div class="field" style="margin-bottom:14px;">
+          <label>Method</label>
+          <div class="radio-group">
+            <label><input type="radio" name="ciDP_method" value="wald" checked> Wald (Normal approx)</label>
+            <label><input type="radio" name="ciDP_method" value="wilson"> Wilson (Newcombe)</label>
+            <label><input type="radio" name="ciDP_method" value="agresti"> Agresti–Coull (MOVER)</label>
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:18px;">
+          <label>Display units</label>
+          <div class="radio-group">
+            <label><input type="radio" name="ciDP_units" value="percent" checked> Percentage (%)</label>
+            <label><input type="radio" name="ciDP_units" value="proportion"> Proportion (0–1)</label>
+          </div>
+        </div>
         <button class="btn btn-primary" onclick="calcCIDiffProps()">Calculate CI</button>
         <div class="result-box hidden" id="ciDP_result"></div>
-        <p class="formula-note">CI = (p̂₁−p̂₂) ± z(α/2) · √(p̂₁(1−p̂₁)/n₁ + p̂₂(1−p̂₂)/n₂), Wald normal approximation.</p>
+        <p class="formula-note">Wald: (p̂₁−p̂₂) ± z·SE. Wilson/Agresti–Coull use the Newcombe/MOVER method, combining each group's individual interval.</p>
+      </div>
+
+      <!-- Odds Ratio CI -->
+      <div class="calc-mode" id="ci-or">
+        <p style="color:var(--muted);font-size:.9rem;margin-top:0;">Enter a 2×2 table (e.g. exposed/unexposed vs. disease/no disease) — same layout as the Chi‑square tool.</p>
+        <div class="form-grid">
+          <div class="field"><label>Cell a <span class="hint">Group 1, Outcome +</span></label><input type="number" id="ciOR_a" value="30" min="0"></div>
+          <div class="field"><label>Cell b <span class="hint">Group 1, Outcome −</span></label><input type="number" id="ciOR_b" value="10" min="0"></div>
+          <div class="field"><label>Cell c <span class="hint">Group 2, Outcome +</span></label><input type="number" id="ciOR_c" value="15" min="0"></div>
+          <div class="field"><label>Cell d <span class="hint">Group 2, Outcome −</span></label><input type="number" id="ciOR_d" value="25" min="0"></div>
+          <div class="field" style="max-width:220px;">
+            <label>Confidence level</label>
+            <select id="ciOR_conf">
+              <option value="0.90">90%</option>
+              <option value="0.95" selected>95%</option>
+              <option value="0.99">99%</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="calcCIOddsRatio()">Calculate CI</button>
+        <div class="result-box hidden" id="ciOR_result"></div>
+        <p class="formula-note">CI = exp[ln(OR) ± z(α/2) · √(1/a + 1/b + 1/c + 1/d)]. A 0.5 continuity correction is applied to all cells automatically if any cell is 0.</p>
+      </div>
+
+      <!-- Risk Ratio CI -->
+      <div class="calc-mode" id="ci-rr">
+        <p style="color:var(--muted);font-size:.9rem;margin-top:0;">Enter a 2×2 table (e.g. exposed/unexposed vs. disease/no disease) — same layout as the Chi‑square tool.</p>
+        <div class="form-grid">
+          <div class="field"><label>Cell a <span class="hint">Group 1, Outcome +</span></label><input type="number" id="ciRR_a" value="30" min="0"></div>
+          <div class="field"><label>Cell b <span class="hint">Group 1, Outcome −</span></label><input type="number" id="ciRR_b" value="10" min="0"></div>
+          <div class="field"><label>Cell c <span class="hint">Group 2, Outcome +</span></label><input type="number" id="ciRR_c" value="15" min="0"></div>
+          <div class="field"><label>Cell d <span class="hint">Group 2, Outcome −</span></label><input type="number" id="ciRR_d" value="25" min="0"></div>
+          <div class="field" style="max-width:220px;">
+            <label>Confidence level</label>
+            <select id="ciRR_conf">
+              <option value="0.90">90%</option>
+              <option value="0.95" selected>95%</option>
+              <option value="0.99">99%</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="calcCIRiskRatio()">Calculate CI</button>
+        <div class="result-box hidden" id="ciRR_result"></div>
+        <p class="formula-note">CI = exp[ln(RR) ± z(α/2) · √(1/a − 1/(a+b) + 1/c − 1/(c+d))]. A 0.5 continuity correction is applied to all cells automatically if any cell is 0.</p>
       </div>
     </div>
 
     <p class="disclaimer">Educational tool for quick exploratory analysis — not a substitute for full statistical software (R, STATA, SAS) for publication‑grade results.</p>
+  </div>
+</section>
+
+<!-- ================= SURVIVAL ANALYSIS ================= -->
+<section id="survival" class="section section-alt">
+  <div class="container">
+    <div class="section-head">
+      <span class="tag">Time‑to‑Event</span>
+      <h2>Survival Analysis</h2>
+      <p>Estimate a survival curve from time‑to‑event data with censoring, or compare two groups' survival with the log‑rank test.</p>
+    </div>
+
+    <div class="tool-tabs" data-tabgroup="surv-main">
+      <button class="tool-tab active" data-tab="surv-km">Kaplan‑Meier Estimator</button>
+      <button class="tool-tab" data-tab="surv-logrank">Log‑Rank Test (2 groups)</button>
+    </div>
+
+    <!-- Kaplan-Meier -->
+    <div class="tool-panel active" id="surv-km">
+      <p style="color:var(--muted);font-size:.9rem;margin-top:0;">One row per subject: <code>time,status</code> — status = 1 for an event (e.g. death, relapse), 0 for censored. Comma or newline separated.</p>
+      <div class="field" style="margin-bottom:18px;">
+        <label>Time, status pairs</label>
+        <textarea id="km_data" placeholder="5,1&#10;6,0&#10;6,1&#10;9,1&#10;10,0" style="min-height:130px;">5,1
+6,0
+6,1
+9,1
+10,0
+11,1
+13,1
+15,0
+17,1
+19,1
+20,0</textarea>
+      </div>
+      <div class="field" style="max-width:220px;">
+        <label>Confidence level <span class="hint">(Greenwood CI)</span></label>
+        <select id="km_conf">
+          <option value="0.90">90%</option>
+          <option value="0.95" selected>95%</option>
+          <option value="0.99">99%</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="calcKaplanMeier()">Estimate Survival Curve</button>
+      <div class="result-box hidden" id="km_result"></div>
+      <p class="formula-note">S(t) = ∏<sub>tᵢ≤t</sub> (1 − dᵢ/nᵢ) — the Kaplan–Meier product‑limit estimator. Greenwood's formula gives the CI at each step.</p>
+    </div>
+
+    <!-- Log-rank test -->
+    <div class="tool-panel" id="surv-logrank">
+      <p style="color:var(--muted);font-size:.9rem;margin-top:0;">Same <code>time,status</code> format, one dataset per group — tests whether the two groups' survival curves differ.</p>
+      <div class="form-grid">
+        <div class="field">
+          <label>Group 1: time, status pairs</label>
+          <textarea id="lr_g1" style="min-height:130px;">5,1
+6,0
+6,1
+9,1
+10,0
+11,1
+13,1
+15,0
+17,1
+19,1</textarea>
+        </div>
+        <div class="field">
+          <label>Group 2: time, status pairs</label>
+          <textarea id="lr_g2" style="min-height:130px;">4,1
+5,1
+7,0
+8,1
+9,1
+10,1
+12,0
+13,1
+14,1
+16,1</textarea>
+        </div>
+      </div>
+      <div class="field" style="max-width:220px;">
+        <label>Significance level (α)</label>
+        <select id="lr_alpha">
+          <option value="0.10">0.10</option>
+          <option value="0.05" selected>0.05</option>
+          <option value="0.01">0.01</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="calcLogRankTest()">Run Log‑Rank Test</button>
+      <div class="result-box hidden" id="lr_result"></div>
+      <p class="formula-note">χ² = (O₁−E₁)² / V, df = 1, compared across every distinct event time in the combined dataset.</p>
+    </div>
+
+    <p class="disclaimer">Educational tool for quick exploratory survival analysis — not a substitute for full statistical software (R's <code>survival</code> package, STATA, SAS) for publication‑grade results.</p>
+  </div>
+</section>
+
+<!-- ================= TIME SERIES ================= -->
+<section id="timeseries" class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="tag">Sequential Data</span>
+      <h2>Time Series Analysis</h2>
+      <p>Fit a linear trend to a sequence of measurements, or smooth it with a moving average.</p>
+    </div>
+
+    <div class="tool-tabs" data-tabgroup="ts-main">
+      <button class="tool-tab active" data-tab="ts-trend">Trend Analysis</button>
+      <button class="tool-tab" data-tab="ts-ma">Moving Average</button>
+    </div>
+
+    <!-- Trend analysis -->
+    <div class="tool-panel active" id="ts-trend">
+      <p style="color:var(--muted);font-size:.9rem;margin-top:0;">Enter values in time order (equally spaced) — e.g. monthly case counts. Fits y = a + b·t and tests whether the slope b differs from zero.</p>
+      <div class="field" style="margin-bottom:18px;">
+        <label>Sequential values <span class="hint">comma, space, or newline separated</span></label>
+        <textarea id="tsT_data" placeholder="e.g. 12, 15, 14, 18, 21, 19, 24, 26">12, 15, 14, 18, 21, 19, 24, 26, 25, 29, 31, 30</textarea>
+      </div>
+      <div class="field" style="max-width:220px;">
+        <label>Significance level (α)</label>
+        <select id="tsT_alpha">
+          <option value="0.10">0.10</option>
+          <option value="0.05" selected>0.05</option>
+          <option value="0.01">0.01</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="calcTrendAnalysis()">Fit Trend</button>
+      <div class="result-box hidden" id="tsT_result"></div>
+      <p class="formula-note">Ordinary least‑squares regression of the series on its time index; the slope's significance is tested with a t‑test (df = n − 2).</p>
+    </div>
+
+    <!-- Moving average -->
+    <div class="tool-panel" id="ts-ma">
+      <p style="color:var(--muted);font-size:.9rem;margin-top:0;">Smooths short‑term fluctuations to reveal the underlying pattern.</p>
+      <div class="field" style="margin-bottom:18px;">
+        <label>Sequential values <span class="hint">comma, space, or newline separated</span></label>
+        <textarea id="tsMA_data" placeholder="e.g. 12, 15, 14, 18, 21, 19, 24, 26">12, 15, 14, 18, 21, 19, 24, 26, 25, 29, 31, 30</textarea>
+      </div>
+      <div class="field" style="max-width:220px;">
+        <label>Window size</label>
+        <input type="number" id="tsMA_window" value="3" step="1" min="2">
+      </div>
+      <button class="btn btn-primary" onclick="calcMovingAverage()">Smooth Series</button>
+      <div class="result-box hidden" id="tsMA_result"></div>
+      <p class="formula-note">Simple (centred‑lag) moving average: each smoothed point averages the current value and the previous (window − 1) values.</p>
+    </div>
+
+    <p class="disclaimer">Educational tool for quick exploratory analysis — for seasonality, autocorrelation, or forecasting, use dedicated time‑series software (R, Python statsmodels).</p>
   </div>
 </section>
 
@@ -462,4 +751,3 @@
 <script src="assets/js/calculators.js"></script>
 </body>
 </html>
-
