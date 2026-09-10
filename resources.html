@@ -22,6 +22,7 @@
       <li><a href="index.html#about">About</a></li>
       <li><a href="index.html#experience">Experience</a></li>
       <li><a href="index.html#publications">Publications</a></li>
+      <li><a href="gallery.html">Gallery</a></li>
       <li><a href="resources.html" class="active">Resources</a></li>
       <li><a href="assets/cv/Sinthanai_Selvan_CV.pdf" class="cta" target="_blank" rel="noopener">Résumé / CV</a></li>
     </ul>
@@ -51,14 +52,14 @@
     </div>
 
     <div class="ppt-grid" id="pptGrid">
-      <!-- Example card (duplicate this block for each new PPT, or drop files in assets/ppts/ — see note below) -->
+      <!-- Duplicate this block for each new PPT, or drop files in assets/ppts/ and add a matching card -->
+      <div class="ppt-card">
+        <div class="file-icon">PPT</div>
+        <h3>R Programme Introduction</h3>
+        <p>Introductory slides on getting started with R for statistical analysis.</p>
+        <a href="assets/ppts/R%20Programme%20Introduction.pptx" class="btn btn-outline" download>Download</a>
+      </div>
     </div>
-
-   <div class="ppt-card">
-     <div class="file-icon">PPT</div>
-     <h3>R Programme Introduction</h3>
-     <a href="assets/ppts/R Programme Introduction.pptx" class="btn btn-outline" download>Download</a>
-   </div>
   </div>
 </section>
 
@@ -244,13 +245,14 @@
     <div class="section-head">
       <span class="tag">Data Analysis</span>
       <h2>Basic Statistics Calculator</h2>
-      <p>Paste a list of numbers to get descriptive statistics, or run a quick t‑test / chi‑square test.</p>
+      <p>Paste a list of numbers to get descriptive statistics, run a quick t‑test / chi‑square test, or build a confidence interval.</p>
     </div>
 
     <div class="tool-tabs" data-tabgroup="sc-main">
       <button class="tool-tab active" data-tab="sc-desc">Descriptive Stats</button>
       <button class="tool-tab" data-tab="sc-ttest">t‑test</button>
       <button class="tool-tab" data-tab="sc-chi">Chi‑square (2×2)</button>
+      <button class="tool-tab" data-tab="sc-ci">Confidence Interval</button>
     </div>
 
     <!-- Descriptive statistics -->
@@ -329,6 +331,121 @@
       <div class="result-box hidden" id="chi_result"></div>
     </div>
 
+    <!-- Confidence Interval -->
+    <div class="tool-panel" id="sc-ci">
+      <div class="sub-tabs" data-subgroup="ci-mode">
+        <button class="sub-tab active" data-mode="ci-mean-data">Mean — from data</button>
+        <button class="sub-tab" data-mode="ci-mean-summary">Mean — from summary</button>
+        <button class="sub-tab" data-mode="ci-prop">Proportion</button>
+        <button class="sub-tab" data-mode="ci-diff-means">Difference of Means</button>
+        <button class="sub-tab" data-mode="ci-diff-props">Difference of Proportions</button>
+      </div>
+
+      <!-- Mean from raw data (t-based) -->
+      <div class="calc-mode active" id="ci-mean-data">
+        <div class="field" style="margin-bottom:18px;">
+          <label>Sample data <span class="hint">comma/space/newline separated</span></label>
+          <textarea id="ciMD_data" placeholder="e.g. 101, 98, 105, 99, 103">101, 98, 105, 99, 103, 107, 96, 100</textarea>
+        </div>
+        <div class="field" style="max-width:220px;">
+          <label>Confidence level</label>
+          <select id="ciMD_conf">
+            <option value="0.90">90%</option>
+            <option value="0.95" selected>95%</option>
+            <option value="0.99">99%</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="calcCIMeanData()">Calculate CI</button>
+        <div class="result-box hidden" id="ciMD_result"></div>
+        <p class="formula-note">CI = x̄ ± t(α/2, df) · SE, using Student's t distribution (df = n − 1).</p>
+      </div>
+
+      <!-- Mean from summary stats (t-based) -->
+      <div class="calc-mode" id="ci-mean-summary">
+        <div class="form-grid">
+          <div class="field"><label>Sample mean (x̄)</label><input type="number" id="ciMS_mean" value="100" step="0.1"></div>
+          <div class="field"><label>Standard deviation (SD)</label><input type="number" id="ciMS_sd" value="10" step="0.1" min="0.001"></div>
+          <div class="field"><label>Sample size (n)</label><input type="number" id="ciMS_n" value="30" step="1" min="2"></div>
+          <div class="field">
+            <label>Confidence level</label>
+            <select id="ciMS_conf">
+              <option value="0.90">90%</option>
+              <option value="0.95" selected>95%</option>
+              <option value="0.99">99%</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="calcCIMeanSummary()">Calculate CI</button>
+        <div class="result-box hidden" id="ciMS_result"></div>
+        <p class="formula-note">CI = x̄ ± t(α/2, df) · (SD/√n), using Student's t distribution (df = n − 1).</p>
+      </div>
+
+      <!-- Single proportion (z-based) -->
+      <div class="calc-mode" id="ci-prop">
+        <div class="form-grid">
+          <div class="field"><label>Number of events (x)</label><input type="number" id="ciP_x" value="45" step="1" min="0"></div>
+          <div class="field"><label>Sample size (n)</label><input type="number" id="ciP_n" value="150" step="1" min="1"></div>
+          <div class="field">
+            <label>Confidence level</label>
+            <select id="ciP_conf">
+              <option value="0.90">90%</option>
+              <option value="0.95" selected>95%</option>
+              <option value="0.99">99%</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="calcCIProp()">Calculate CI</button>
+        <div class="result-box hidden" id="ciP_result"></div>
+        <p class="formula-note">CI = p̂ ± z(α/2) · √(p̂(1−p̂)/n), Wald normal approximation.</p>
+      </div>
+
+      <!-- Difference of two means -->
+      <div class="calc-mode" id="ci-diff-means">
+        <div class="form-grid">
+          <div class="field">
+            <label>Group 1 data</label>
+            <textarea id="ciDM_g1" placeholder="e.g. 12,14,15,11">12, 14, 15, 11, 13, 16, 10</textarea>
+          </div>
+          <div class="field">
+            <label>Group 2 data</label>
+            <textarea id="ciDM_g2" placeholder="e.g. 18,20,17,19">18, 20, 17, 19, 21, 16, 22</textarea>
+          </div>
+        </div>
+        <div class="field" style="max-width:220px;">
+          <label>Confidence level</label>
+          <select id="ciDM_conf">
+            <option value="0.90">90%</option>
+            <option value="0.95" selected>95%</option>
+            <option value="0.99">99%</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="calcCIDiffMeans()">Calculate CI</button>
+        <div class="result-box hidden" id="ciDM_result"></div>
+        <p class="formula-note">CI = (x̄₁−x̄₂) ± t(α/2, df) · SE, Welch's method (no equal‑variance assumption).</p>
+      </div>
+
+      <!-- Difference of two proportions -->
+      <div class="calc-mode" id="ci-diff-props">
+        <div class="form-grid">
+          <div class="field"><label>Group 1 events (x₁)</label><input type="number" id="ciDP_x1" value="45" step="1" min="0"></div>
+          <div class="field"><label>Group 1 size (n₁)</label><input type="number" id="ciDP_n1" value="150" step="1" min="1"></div>
+          <div class="field"><label>Group 2 events (x₂)</label><input type="number" id="ciDP_x2" value="30" step="1" min="0"></div>
+          <div class="field"><label>Group 2 size (n₂)</label><input type="number" id="ciDP_n2" value="140" step="1" min="1"></div>
+          <div class="field" style="max-width:220px;">
+            <label>Confidence level</label>
+            <select id="ciDP_conf">
+              <option value="0.90">90%</option>
+              <option value="0.95" selected>95%</option>
+              <option value="0.99">99%</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="calcCIDiffProps()">Calculate CI</button>
+        <div class="result-box hidden" id="ciDP_result"></div>
+        <p class="formula-note">CI = (p̂₁−p̂₂) ± z(α/2) · √(p̂₁(1−p̂₁)/n₁ + p̂₂(1−p̂₂)/n₂), Wald normal approximation.</p>
+      </div>
+    </div>
+
     <p class="disclaimer">Educational tool for quick exploratory analysis — not a substitute for full statistical software (R, STATA, SAS) for publication‑grade results.</p>
   </div>
 </section>
@@ -337,6 +454,7 @@
   <div class="container">
     &copy; <span id="year"></span> Sinthanai Selvan Palanisamy · Biostatistics &amp; Epidemiology ·
     <a href="mailto:sinthanaibiostat@gmail.com">sinthanaibiostat@gmail.com</a>
+    <img class="visitor-badge" src="https://hits.sh/sinthanai-selvan-portfolio.svg?style=flat-square&label=page%20views&color=14a693" alt="Page views">
   </div>
 </footer>
 
@@ -344,3 +462,4 @@
 <script src="assets/js/calculators.js"></script>
 </body>
 </html>
+
